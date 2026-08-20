@@ -9,6 +9,8 @@ const comprasNet = async()=> {
 
   console.log("Portal aberto!");
 
+  await page.waitForTimeout(2000);
+
   const check =  await page.locator('input[name="chkTodos"]').check();
 
   await page.waitForTimeout(5000);
