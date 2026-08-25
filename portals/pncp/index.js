@@ -77,9 +77,9 @@ const modalidades = [
 const TAMANHO_PAGINA = 50;
 
 // Data utilizada na busca
-const DATA_INICIAL = "20260820";
+const DATA_INICIAL = "20260824";
 
-const DATA_FINAL = "20260821";
+const DATA_FINAL = "20260825";
 
 
 // ============================================================

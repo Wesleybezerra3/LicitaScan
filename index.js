@@ -1,8 +1,16 @@
+const express = require('express');
+const cors = require('cors')
 const readline = require("readline");
-
 const bbmnet = require("./portals/bbmnet");
 const portalComprasNet = require("./portals/portalComprasNet");
 const pncp = require("./portals/pncp");
+const { json } = require('stream/consumers');
+
+const app = express();
+
+app.use(express.json())
+app.use(cors)
+
 
 const rl = readline.createInterface({
   input: process.stdin,

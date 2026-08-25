@@ -2,6 +2,13 @@ const fs = require("fs");
 const path = require("path");
 
 const salvarEditais = (editais) => {
+   const dataAtual = new Date();
+  const dataFormatada = dataAtual.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).replace(/\//g, "-");
+
   const pasta = path.join(__dirname, "../data");
 
   // Cria a pasta caso ela não exista
@@ -9,7 +16,7 @@ const salvarEditais = (editais) => {
     fs.mkdirSync(pasta, { recursive: true });
   }
 
-  const arquivo = path.join(pasta, `editais_${Date.now()}.json`);
+  const arquivo = path.join(pasta, `editais_${dataFormatada}.json`);
 
   fs.writeFileSync(
     arquivo,

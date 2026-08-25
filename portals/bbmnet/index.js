@@ -9,29 +9,29 @@ const { salvarEditais } = require("../../utils/saveFile");
 const bbmNet = async () => {
   const palavrasChave = [
     "livro",
-    "Didátic",
-    "Litera",
-    "pedagógic",
-    "Biblio",
-    "Leit",
-    "Acervo",
-    "Book",
-    "Educaciona",
-    "Portug",
-    "Matemática",
-    "SAEB",
-    "Publicação nacional",
-    "Publicações nacionais",
-    "Material informacional",
-    "Recurso Informacional",
-    "Material para formação   ",
-    "Referenciais Teóricos",
-    "Aluno",
-    "Kit Escolar",
-    "Kits Escolares",
-    "Kit Aluno",
-    "Kit Professor",
-    "Material Escolar",
+    // "Didátic",
+    // "Litera",
+    // "pedagógic",
+    // "Biblio",
+    // "Leit",
+    // "Acervo",
+    // "Book",
+    // "Educaciona",
+    // "Portug",
+    // "Matemática",
+    // "SAEB",
+    // "Publicação nacional",
+    // "Publicações nacionais",
+    // "Material informacional",
+    // "Recurso Informacional",
+    // "Material para formação   ",
+    // "Referenciais Teóricos",
+    // "Aluno",
+    // "Kit Escolar",
+    // "Kits Escolares",
+    // "Kit Aluno",
+    // "Kit Professor",
+    // "Material Escolar",
   ];
   const dataAtual = new Date();
   const dataFormatada = dataAtual.toLocaleDateString("pt-BR", {
@@ -39,6 +39,7 @@ const bbmNet = async () => {
     month: "2-digit",
     year: "numeric",
   });
+  const DATA_PUBLICACAO = dataFormatada
   console.log(`Data atual: ${dataFormatada}`);
   let infosData = [];
   let infosDataFiltradas = [];
@@ -101,7 +102,8 @@ const bbmNet = async () => {
       infosDataFiltradas = infosData.filter(
         (info) =>
           info.terminoPropostas !== null &&
-          info.prazoVencido === false 
+          info.prazoVencido === false  &&
+          info.dataPublicacao === DATA_PUBLICACAO
       );
       // verificar próxima página aqui
       console.log(`Editais encontrados: `, infosDataFiltradas);
