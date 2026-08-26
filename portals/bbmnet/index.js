@@ -88,6 +88,7 @@ const bbmNet = async () => {
         const prazo = verificarTerminoProposta(termino);
 
         infosData.push({
+          portal: 'bbmnet',
           nomeOrgao: await nomeOrgao.nth(i / 6).innerText(),
           dataPublicacao: await getValue(infos.nth(i)),
           modalidade: await getValue(infos.nth(i + 1)),
@@ -96,6 +97,7 @@ const bbmNet = async () => {
           objeto: await getValue(infos.nth(i + 3)),
           edital: await getValue(infos.nth(i + 4)),
           situacao: await getValue(infos.nth(i + 5)),
+          link:'Não informado'
         });
       }
 

@@ -1,5 +1,9 @@
 const axios = require("axios");
+const { salvarEditais } = require("../../utils/saveFile");
 
+const {
+  verificarTerminoProposta,
+} = require("../../utils/verificarTerminoProposta");
 const BASE_URL = "https://pncp.gov.br/api/consulta";
 
 // ============================================================
@@ -77,9 +81,9 @@ const modalidades = [
 const TAMANHO_PAGINA = 50;
 
 // Data utilizada na busca
-const DATA_INICIAL = "20260824";
+const DATA_INICIAL = "20260825";
 
-const DATA_FINAL = "20260825";
+const DATA_FINAL = "20260826";
 
 
 // ============================================================
@@ -246,6 +250,7 @@ async function buscarContratacoes(
 
 function exibirEdital(contratacao, analise) {
 
+  
   console.log("\n======================================");
 
   console.log("EDITAL ENCONTRADO");
@@ -322,7 +327,7 @@ function exibirEdital(contratacao, analise) {
       contratacao.numeroControlePNCP ||
       "Não informado"
     }`
-  );
+  );  
 
   console.log(
     "======================================\n"
@@ -437,13 +442,36 @@ async function pncp(
   // ==========================================================
   // EXIBIR
   // ==========================================================
-
+  const editais = []
   for (const edital of editaisEncontrados) {
+   
+    
+   const prazo = verificarTerminoProposta(edital.contratacao.dataEncerramentoProposta)
 
-    exibirEdital(
+    
+    editais.push({
+    nomeOrgao: edital.contratacao.unidadeOrgao?.nome ||
+      edital.contratacao.orgaoEntidade?.razaoSocial ||
+      edital.contratacao.orgaoEntidade?.nome ||
+      "Não informado",
+    dataPublicacao:edital.contratacao.dataPublicacaoPncp ||
+      "Não informado",
+    modalidade:  edital.contratacao.modalidadeNome ||
+      "Não informado",
+    terminoPropostas:prazo.data || 'Não informado',
+    prazoVencido: prazo.vencido,
+    objeto: edital.contratacao.objetoCompra || "Não informado",
+    edital: edital.contratacao.processo || 'Não informado',
+    situacao: "",
+    link: edital.contratacao.linkProcessoEletronico
+    })
+     exibirEdital(
       edital.contratacao,
       edital.analise
-    );
+    )
+    console.log('editais:', editais)
+    salvarEditais(!editais.length ? 'Nenhum edital encontrado': editais,'pncp');
+    
   }
 
 
