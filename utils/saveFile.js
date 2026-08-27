@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const salvarEditais = (editais) => {
+const salvarEditais = (editais, portal) => {
    const dataAtual = new Date();
   const dataFormatada = dataAtual.toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -16,7 +16,7 @@ const salvarEditais = (editais) => {
     fs.mkdirSync(pasta, { recursive: true });
   }
 
-  const arquivo = path.join(pasta, `editais_${dataFormatada}.json`);
+  const arquivo = path.join(pasta, `editais_${dataFormatada}_${portal}.json`);
 
   fs.writeFileSync(
     arquivo,
