@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senhaHash String
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  palavrasChave PalavraChave[]
+  anotacoes    Anotacao[]
+  licitacoes   LicitacaoUsuario[]
+  buscas       ExecucaoBusca[]
+}
+
+model Portal {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  codigo    String   @unique
+  url       String?
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now())
+
+  licitacoes Licitacao[]
+  buscas     ExecucaoBusca[]
+}
+
+model Orgao {
+  id           Int      @id @default(autoincrement())
+  cnpj         String   @unique
+  razaoSocial  String
+  nomeFantasia String?
+  poder        String?
+  esfera       String?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  unidades   UnidadeOrgao[]
+  licitacoes Licitacao[]
+}
+
+model UnidadeOrgao {
+  id         Int      @id @default(autoincrement())
+  orgaoId    Int
+  codigo     String?
+  nome       String
+  codigoIbge Int?
+  uf         String?
+  municipio  String?
+
+  orgao      Orgao      @relation(fields: [orgaoId], references: [id])
+  licitacoes Licitacao[]
+
+  @@index([orgaoId])
+}
+
+model Modalidade {
+  id        Int    @id @default(autoincrement())
+  codigo    String @unique
+  nome      String
+  descricao String?
+
+  licitacoes Licitacao[]
+}
+
+model Licitacao {
+  id                    Int      @id @default(autoincrement())
+  portalId              Int
+  orgaoId               Int?
+  unidadeId             Int?
+  modalidadeId          Int?
+
+  codigoExterno         String
+  numero                String?
+  ano                   Int?
+  objeto                String
+  descricao             String?
+
+  status                String?
+
+  valorEstimado         Float?
+  valorHomologado       Float?
+
+  dataPublicacao        DateTime?
+  dataAbertura          DateTime?
+  dataEncerramento      DateTime?
+  dataAtualizacaoPortal DateTime?
+
+  url                   String?
+  urlEdital             String?
+
+  criadaEm              DateTime @default(now())
+  atualizadaEm          DateTime @updatedAt
+
+  portal       Portal         @relation(fields: [portalId], references: [id])
+  orgao        Orgao?         @relation(fields: [orgaoId], references: [id])
+  unidade      UnidadeOrgao?  @relation(fields: [unidadeId], references: [id])
+  modalidade   Modalidade?    @relation(fields: [modalidadeId], references: [id])
+
+  itens        Item[]
+  documentos   Documento[]
+  palavras     LicitacaoPalavraChave[]
+  usuarios     LicitacaoUsuario[]
+  anotacoes    Anotacao[]
+
+  @@unique([portalId, codigoExterno])
+  @@index([portalId])
+  @@index([orgaoId])
+  @@index([dataPublicacao])
+  @@index([dataEncerramento])
+}
+
+model Item {
+  id                    Int      @id @default(autoincrement())
+  licitacaoId           Int
+  numero                Int
+  descricao             String
+  tipo                  String?
+  quantidade            Float?
+  unidadeMedida         String?
+  valorUnitarioEstimado Float?
+  valorTotalEstimado    Float?
+  codigoCatalogo        String?
+
+  licitacao Licitacao @relation(fields: [licitacaoId], references: [id])
+
+  palavras LicitacaoPalavraChave[]
+
+  @@unique([licitacaoId, numero])
+  @@index([descricao])
+}
+
+model PalavraChave {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  nome      String
+  ativa     Boolean  @default(true)
+  criadaEm  DateTime @default(now())
+
+  usuario    Usuario                  @relation(fields: [usuarioId], references: [id])
+  licitacoes LicitacaoPalavraChave[]
+
+  @@unique([usuarioId, nome])
+}
+
+model LicitacaoPalavraChave {
+  id              Int      @id @default(autoincrement())
+  licitacaoId     Int
+  palavraChaveId  Int
+  itemId          Int?
+
+  campoEncontrado String?
+  trechoEncontrado String?
+  criadaEm        DateTime @default(now())
+
+  licitacao    Licitacao    @relation(fields: [licitacaoId], references: [id])
+  palavraChave PalavraChave @relation(fields: [palavraChaveId], references: [id])
+  item         Item?       @relation(fields: [itemId], references: [id])
+
+  @@unique([licitacaoId, palavraChaveId, itemId])
+}
+
+model Documento {
+  id             Int      @id @default(autoincrement())
+  licitacaoId    Int
+  tipo           String
+  nome           String?
+  url            String
+  urlDownload    String?
+  mimeType       String?
+  tamanho        Int?
+  dataPublicacao DateTime?
+  criadoEm       DateTime @default(now())
+
+  licitacao Licitacao @relation(fields: [licitacaoId], references: [id])
+
+  @@index([licitacaoId])
+}
+
+model LicitacaoUsuario {
+  id          Int      @id @default(autoincrement())
+  usuarioId   Int
+  licitacaoId Int
+  status      String   @default("NOVA")
+  favorita    Boolean  @default(false)
+  visualizada Boolean  @default(false)
+  criadaEm    DateTime @default(now())
+  atualizadaEm DateTime @updatedAt
+
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id])
+  licitacao Licitacao @relation(fields: [licitacaoId], references: [id])
+
+  @@unique([usuarioId, licitacaoId])
+}
+
+model Anotacao {
+  id          Int      @id @default(autoincrement())
+  usuarioId   Int
+  licitacaoId Int
+  titulo      String
+  conteudo    String
+  criadaEm    DateTime @default(now())
+  atualizadaEm DateTime @updatedAt
+
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id])
+  licitacao Licitacao @relation(fields: [licitacaoId], references: [id])
+
+  @@index([usuarioId])
+  @@index([licitacaoId])
+}
+
+model ExecucaoBusca {
+  id                Int      @id @default(autoincrement())
+  portalId          Int
+  usuarioId         Int?
+  inicio            DateTime
+  fim               DateTime?
+  status             String
+  paginaInicial      Int?
+  paginaFinal        Int?
+  quantidadeEncontrada Int    @default(0)
+  quantidadeNova     Int      @default(0)
+  erro               String?
+  criadaEm           DateTime @default(now())
+
+  portal  Portal  @relation(fields: [portalId], references: [id])
+  usuario Usuario? @relation(fields: [usuarioId], references: [id])
+
+  erros ErroBusca[]
+}
+
+model ErroBusca {
+  id              Int      @id @default(autoincrement())
+  execucaoBuscaId Int
+  pagina          Int?
+  mensagem        String
+  statusCode      Int?
+  detalhes        String?
+  criadaEm        DateTime @default(now())
+
+  execucao ExecucaoBusca @relation(fields: [execucaoBuscaId], references: [id])
+}

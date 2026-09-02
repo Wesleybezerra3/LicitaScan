@@ -5,6 +5,40 @@ const {
 } = require("../../utils/verificarTerminoProposta");
 const { salvarEditais } = require("../../utils/saveFile");
 
+const esperar = (ms) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+async function buscarPaginaComRetry(
+  dataInicial,
+  dataFinal,
+  codigoModalidadeContratacao,
+  pagina,
+  tentativas = 3
+) {
+  for (let tentativa = 0; tentativa < tentativas; tentativa++) {
+    try {
+      return await buscarPagina(
+        dataInicial,
+        dataFinal,
+        codigoModalidadeContratacao,
+        pagina
+      );
+    } catch (error) {
+      const status = error.response?.status;
+
+      if (status !== 429 || tentativa === tentativas - 1) {
+        throw error;
+      }
+
+      const retryAfter = Number(error.response.headers["retry-after"]);
+      const atraso = retryAfter
+        ? retryAfter * 1000
+        : 2000 * 2 ** tentativa;
+
+      await esperar(atraso);
+    }
+  }
+}
 
 const bbmNet = async () => {
   const palavrasChave = [
@@ -125,40 +159,7 @@ const bbmNet = async () => {
   }
 
   //   await page.waitForTimeout(50000);
-  salvarEditais(  const esperar = (ms) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
-  
-  async function buscarPaginaComRetry(
-    dataInicial,
-    dataFinal,
-    codigoModalidadeContratacao,
-    pagina,
-    tentativas = 3
-  ) {
-    for (let tentativa = 0; tentativa < tentativas; tentativa++) {
-      try {
-        return await buscarPagina(
-          dataInicial,
-          dataFinal,
-          codigoModalidadeContratacao,
-          pagina
-        );
-      } catch (error) {
-        const status = error.response?.status;
-  
-        if (status !== 429 || tentativa === tentativas - 1) {
-          throw error;
-        }
-  
-        const retryAfter = Number(error.response.headers["retry-after"]);
-        const atraso = retryAfter
-          ? retryAfter * 1000
-          : 2000 * 2 ** tentativa;
-  
-        await esperar(atraso);
-      }
-    }
-  }
+  salvarEditais(
     !infosDataFiltradas.length
       ? "Nenhum edital encontrado"
       : infosDataFiltradas,

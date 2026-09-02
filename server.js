@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const pncpRouter = require("./src/routers/pncp");
+const { iniciarWorker } = require("./worker/worker");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Servidor LicitaScan executando em http://localhost:${PORT}`);
+    iniciarWorker();
   });
 }
 

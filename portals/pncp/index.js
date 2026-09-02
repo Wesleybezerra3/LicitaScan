@@ -1,63 +1,21 @@
 const axios = require("axios");
+const { PrismaClient } = require("@prisma/client");
+const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
 const { salvarEditais } = require("../../utils/saveFile");
+const palavrasChave = require("../../src/config/palavras_chaves");
+const {modalidades, TAMANHO_PAGINA, DATA_INICIAL, DATA_FINAL} = require("../../src/config/pncp");
+const analisarContratacao = require("../../src/services/analisarContratacao");
 
-const {
-  verificarTerminoProposta,
-} = require("../../utils/verificarTerminoProposta");
+const adapter = new PrismaBetterSqlite3({
+  url: "file:./prisma/dev.db",
+});
+
+const prisma = new PrismaClient({ adapter });
 const BASE_URL = "https://pncp.gov.br/api/consulta";
 
 // ============================================================
 // CONFIGURAÇÕES
 // ============================================================
-
-const palavrasChave = {
-  // Alta relevância
-  livro: 10,
-  livros: 10,
-  "livro didático": 15,
-  "livros didáticos": 15,
-  "material didático": 12,
-  "materiais didáticos": 12,
-
-
-  "livro paradidático": 15,
-  "livros paradidáticos": 15,
-  paradidático: 12,
-  paradidáticos: 12,
-
-  "material escolar": 10,
-  "materiais escolares": 10,
-
-  "kit escolar": 10,
-  "kits escolares": 10,
-  "kit aluno": 8,
-  "kits aluno": 8,
-  "kit professor": 8,
-  "kits professor": 8,
-
-  "material pedagógico": 10,
-  "materiais pedagógicos": 10,
-
-  literatura: 10,
-  literário: 10,
-  literários: 10,
-  "obra literária": 12,
-  "obras literárias": 12,
-
-  "material informacional": 8,
-  "recurso informacional": 8,
-
-  "publicação nacional": 8,
-  "publicações nacionais": 8,
-
-  "referenciais teóricos": 8,
-
-  saeb: 8,
-
-  // Menor relevância
-  biblioteca: 3,
-  acervo: 2,
-};
 
 // Modalidades que queremos consultar.
 //
@@ -67,80 +25,80 @@ const palavrasChave = {
 //
 // Deixe aqui somente as modalidades que fazem sentido para
 // aquisição de livros/material escolar.
-const modalidades = [
-  {
-    codigo: 6,
-    nome: "Pregão eletronico",
-  },
+// const modalidades = [
+//   {
+//     codigo: 6,
+//     nome: "Pregão eletronico",
+//   },
 
-  // Adicione aqui as demais modalidades depois de confirmar
-  // os códigos na API do PNCP.
-];
+//   // Adicione aqui as demais modalidades depois de confirmar
+//   // os códigos na API do PNCP.
+// ];
 
-// Quantidade de registros por página
-const TAMANHO_PAGINA = 50;
+// // Quantidade de registros por página
+// const TAMANHO_PAGINA = 50;
 
-// Data utilizada na busca
-const DATA_INICIAL = "20260825";
+// // Data utilizada na busca
+// const DATA_INICIAL = "20260801";
 
-const DATA_FINAL = "20260826";
+// const DATA_FINAL = "20260902";
 
 
 // ============================================================
 // NORMALIZAÇÃO
 // ============================================================
 
-function normalizarTexto(texto = "") {
-  return String(texto)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-}
+// function normalizarTexto(texto = "") {
+//   return String(texto)
+//     .normalize("NFD")
+//     .replace(/[\u0300-\u036f]/g, "")
+//     .toLowerCase()
+//     .replace(/\s+/g, " ")
+//     .trim();
+// }
 
 
 // ============================================================
 // ANÁLISE DO EDITAL
 // ============================================================
 
-function analisarContratacao(contratacao) {
+// function analisarContratacao(contratacao) {
 
-  const objeto = contratacao.objetoCompra || "";
+//   const objeto = contratacao.objetoCompra || "";
 
-  const informacaoComplementar =
-    contratacao.informacaoComplementar || "";
+//   const informacaoComplementar =
+//     contratacao.informacaoComplementar || "";
 
-  const texto = normalizarTexto(`
-    ${objeto}
-    ${informacaoComplementar}
-  `);
+//   const texto = normalizarTexto(`
+//     ${objeto}
+//     ${informacaoComplementar}
+//   `);
 
-  let score = 0;
+//   let score = 0;
 
-  const palavrasEncontradas = [];
+//   const palavrasEncontradas = [];
 
-  for (const [palavra, peso] of Object.entries(palavrasChave)) {
+//   for (const [palavra, peso] of Object.entries(palavrasChave)) {
 
-    const palavraNormalizada = normalizarTexto(palavra);
+//     const palavraNormalizada = normalizarTexto(palavra);
 
-    if (texto.includes(palavraNormalizada)) {
+//     if (texto.includes(palavraNormalizada)) {
 
-      score += peso;
+//       score += peso;
 
-      palavrasEncontradas.push({
-        palavra,
-        peso,
-      });
-    }
-  }
+//       palavrasEncontradas.push({
+//         palavra,
+//         peso,
+//       });
+//     }
+//   }
 
-  return {
-    relevante: score >= 8,
-    score,
-    palavrasEncontradas,
-  };
-}
+//   return {
+//     relevante: score >= 8,
+//     score,
+//     palavrasEncontradas,
+//   };
+// }
 
 
 // ============================================================
@@ -247,6 +205,110 @@ async function buscarContratacoes(
 // ============================================================
 // EXIBIR EDITAL
 // ============================================================
+
+function extrairNumeroValor(valor) {
+  if (valor === null || valor === undefined || valor === "") {
+    return null;
+  }
+
+  const valorNormalizado = String(valor)
+    .replace(/\./g, "")
+    .replace(",", ".")
+    .trim();
+
+  const numero = Number(valorNormalizado);
+  return Number.isFinite(numero) ? numero : null;
+}
+
+function extrairData(valor) {
+  if (!valor) {
+    return null;
+  }
+
+  const data = new Date(valor);
+  return Number.isNaN(data.getTime()) ? null : data;
+}
+
+async function salvarEditaisNoBanco(editaisEncontrados) {
+  if (!Array.isArray(editaisEncontrados) || editaisEncontrados.length === 0) {
+    return [];
+  }
+
+  const portal = await prisma.portal.upsert({
+    where: { codigo: "pncp" },
+    update: {},
+    create: {
+      nome: "PNCP",
+      codigo: "pncp",
+      url: "https://pncp.gov.br",
+    },
+  });
+
+  const registrosSalvos = [];
+
+  for (const [index, { contratacao }] of editaisEncontrados.entries()) {
+    const codigoExterno = String(
+      contratacao.numeroControlePNCP ||
+        contratacao.processo ||
+        contratacao.codigo ||
+        `${portal.codigo}-${index + 1}`
+    );
+
+    const valorEstimado = extrairNumeroValor(
+      contratacao.valorEstimado ||
+        contratacao.valorGlobal ||
+        contratacao.valorTotal ||
+        contratacao.valor ||
+        contratacao.valorEstimadoCompra
+    );
+
+    const registro = {
+      portalId: portal.id,
+      codigoExterno,
+      numero: contratacao.processo || contratacao.numero || null,
+      ano: Number(contratacao.ano) || null,
+      objeto: contratacao.objetoCompra || contratacao.objeto || "Não informado",
+      descricao:
+        contratacao.informacaoComplementar ||
+        contratacao.descricao ||
+        null,
+      status: contratacao.situacao || contratacao.status || null,
+      valorEstimado,
+      valorHomologado: null,
+      dataPublicacao: extrairData(contratacao.dataPublicacaoPncp),
+      dataAbertura: extrairData(contratacao.dataAbertura),
+      dataEncerramento: extrairData(
+        contratacao.dataEncerramentoProposta ||
+          contratacao.dataEncerramento
+      ),
+      dataAtualizacaoPortal: extrairData(
+        contratacao.dataAtualizacaoPortal ||
+          contratacao.dataAtualizacao
+      ),
+      url: contratacao.linkProcessoEletronico || contratacao.url || null,
+      urlEdital:
+        contratacao.linkProcessoEletronico ||
+        contratacao.urlEdital ||
+        contratacao.url ||
+        null,
+    };
+
+    const licitacaoSalva = await prisma.licitacao.upsert({
+      where: {
+        portalId_codigoExterno: {
+          portalId: portal.id,
+          codigoExterno,
+        },
+      },
+      update: registro,
+      create: registro,
+    });
+
+    registrosSalvos.push(licitacaoSalva);
+  }
+
+  return registrosSalvos;
+}
 
 function exibirEdital(contratacao, analise) {
 
@@ -443,37 +505,79 @@ async function pncp(
   // EXIBIR
   // ==========================================================
   const editais = []
-  for (const edital of editaisEncontrados) {
-   
-    
-   const prazo = verificarTerminoProposta(edital.contratacao.dataEncerramentoProposta)
+  const portal = await prisma.portal.upsert({
+    where: { codigo: "pncp" },
+    update: {},
+    create: {
+      nome: "PNCP",
+      codigo: "pncp",
+      url: "https://pncp.gov.br",
+    },
+  });
 
-    
+  for (const edital of editaisEncontrados) {
+    const contratacao = edital.contratacao;
+    const codigoExterno = String(
+      contratacao.numeroControlePNCP ||
+        contratacao.processo ||
+        contratacao.codigo ||
+        `${portal.codigo}-${editais.length + 1}`
+    );
+
     editais.push({
-    nomeOrgao: edital.contratacao.unidadeOrgao?.nome ||
-      edital.contratacao.orgaoEntidade?.razaoSocial ||
-      edital.contratacao.orgaoEntidade?.nome ||
-      "Não informado",
-    dataPublicacao:edital.contratacao.dataPublicacaoPncp ||
-      "Não informado",
-    modalidade:  edital.contratacao.modalidadeNome ||
-      "Não informado",
-    terminoPropostas:prazo.data || 'Não informado',
-    prazoVencido: prazo.vencido,
-    objeto: edital.contratacao.objetoCompra || "Não informado",
-    edital: edital.contratacao.processo || 'Não informado',
-    situacao: "",
-    link: edital.contratacao.linkProcessoEletronico
-    })
-     exibirEdital(
+      portalId: portal.id,
+      codigoExterno,
+      numero: contratacao.processo || contratacao.numero || null,
+      ano: Number(contratacao.ano) || null,
+      objeto: contratacao.objetoCompra || contratacao.objeto || "Não informado",
+      descricao:
+        contratacao.informacaoComplementar ||
+        contratacao.descricao ||
+        null,
+      status: contratacao.situacao || contratacao.status || null,
+      valorEstimado: extrairNumeroValor(
+        contratacao.valorEstimado ||
+          contratacao.valorGlobal ||
+          contratacao.valorTotal ||
+          contratacao.valor ||
+          contratacao.valorEstimadoCompra
+      ),
+      valorHomologado: null,
+      dataPublicacao: extrairData(contratacao.dataPublicacaoPncp),
+      dataAbertura: extrairData(contratacao.dataAbertura),
+      dataEncerramento: extrairData(
+        contratacao.dataEncerramentoProposta ||
+          contratacao.dataEncerramento
+      ),
+      dataAtualizacaoPortal: extrairData(
+        contratacao.dataAtualizacaoPortal ||
+          contratacao.dataAtualizacao
+      ),
+      url: contratacao.linkProcessoEletronico || contratacao.url || null,
+      urlEdital:
+        contratacao.linkProcessoEletronico ||
+        contratacao.urlEdital ||
+        contratacao.url ||
+        null,
+    });
+
+    exibirEdital(
       edital.contratacao,
       edital.analise
     )
-    console.log('editais:', editais)
-    salvarEditais(!editais.length ? 'Nenhum edital encontrado': editais,'pncp');
-    
+
   }
 
+  salvarEditais(!editais.length ? 'Nenhum edital encontrado' : editais, 'pncp');
+
+  try {
+    await salvarEditaisNoBanco(editaisEncontrados);
+    console.log(
+      `Editais salvos no banco: ${editaisEncontrados.length}`
+    );
+  } catch (error) {
+    console.error("Erro ao salvar editais no banco de dados:", error);
+  }
 
   return editaisEncontrados;
 }
