@@ -84,6 +84,8 @@ model Licitacao {
   ano                   Int?
   objeto                String
   descricao             String?
+  unidadeOrgao          String?
+  orgaoEntidade         String?
 
   status                String?
 

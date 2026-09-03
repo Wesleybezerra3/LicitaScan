@@ -5,6 +5,8 @@ const { salvarEditais } = require("../../utils/saveFile");
 const palavrasChave = require("../../src/config/palavras_chaves");
 const {modalidades, TAMANHO_PAGINA, DATA_INICIAL, DATA_FINAL} = require("../../src/config/pncp");
 const analisarContratacao = require("../../src/services/analisarContratacao");
+const filtrarEditais = require("../../src/services/filtrarEditais");
+const { orgao } = require("../../src/config/db");
 
 const adapter = new PrismaBetterSqlite3({
   url: "file:./prisma/dev.db",
@@ -229,6 +231,8 @@ function extrairData(valor) {
   return Number.isNaN(data.getTime()) ? null : data;
 }
 
+
+
 async function salvarEditaisNoBanco(editaisEncontrados) {
   if (!Array.isArray(editaisEncontrados) || editaisEncontrados.length === 0) {
     return [];
@@ -250,12 +254,14 @@ async function salvarEditaisNoBanco(editaisEncontrados) {
     const codigoExterno = String(
       contratacao.numeroControlePNCP ||
         contratacao.processo ||
+        contratacao.numeroCompra ||
         contratacao.codigo ||
         `${portal.codigo}-${index + 1}`
     );
 
     const valorEstimado = extrairNumeroValor(
       contratacao.valorEstimado ||
+        contratacao.valorTotalEstimado ||
         contratacao.valorGlobal ||
         contratacao.valorTotal ||
         contratacao.valor ||
@@ -263,20 +269,34 @@ async function salvarEditaisNoBanco(editaisEncontrados) {
     );
 
     const registro = {
+      unidadeOrgao: contratacao.unidadeOrgao
+        ? JSON.stringify(contratacao.unidadeOrgao)
+        : null,
+      orgaoEntidade: contratacao.orgaoEntidade
+        ? JSON.stringify(contratacao.orgaoEntidade)
+        : null,
       portalId: portal.id,
       codigoExterno,
-      numero: contratacao.processo || contratacao.numero || null,
-      ano: Number(contratacao.ano) || null,
+      numero: contratacao.numeroCompra || contratacao.processo || contratacao.numero || null,
+      ano: Number(contratacao.anoCompra || contratacao.ano) || null,
       objeto: contratacao.objetoCompra || contratacao.objeto || "Não informado",
       descricao:
         contratacao.informacaoComplementar ||
         contratacao.descricao ||
         null,
-      status: contratacao.situacao || contratacao.status || null,
+      status:
+        contratacao.situacaoCompraNome ||
+        contratacao.situacao ||
+        contratacao.status ||
+        null,
       valorEstimado,
-      valorHomologado: null,
+      valorHomologado: extrairNumeroValor(
+        contratacao.valorTotalHomologado || contratacao.valorHomologado
+      ),
       dataPublicacao: extrairData(contratacao.dataPublicacaoPncp),
-      dataAbertura: extrairData(contratacao.dataAbertura),
+      dataAbertura: extrairData(
+        contratacao.dataAberturaProposta || contratacao.dataAbertura
+      ),
       dataEncerramento: extrairData(
         contratacao.dataEncerramentoProposta ||
           contratacao.dataEncerramento
@@ -285,9 +305,14 @@ async function salvarEditaisNoBanco(editaisEncontrados) {
         contratacao.dataAtualizacaoPortal ||
           contratacao.dataAtualizacao
       ),
-      url: contratacao.linkProcessoEletronico || contratacao.url || null,
+      url:
+        contratacao.linkProcessoEletronico ||
+        contratacao.linkSistemaOrigem ||
+        contratacao.url ||
+        null,
       urlEdital:
         contratacao.linkProcessoEletronico ||
+        contratacao.linkSistemaOrigem ||
         contratacao.urlEdital ||
         contratacao.url ||
         null,
@@ -328,7 +353,11 @@ function exibirEdital(contratacao, analise) {
   );
 
   console.log(
-    `Processo: ${contratacao.processo || "Não informado"}`
+    `Processo: ${
+      contratacao.numeroCompra ||
+      contratacao.processo ||
+      "Não informado"
+    }`
   );
 
   console.log(
@@ -353,6 +382,7 @@ function exibirEdital(contratacao, analise) {
   // em estruturas diferentes dependendo do registro.
   console.log(
     `Órgão: ${
+      contratacao.unidadeOrgao?.nomeUnidade ||
       contratacao.unidadeOrgao?.nome ||
       contratacao.orgaoEntidade?.razaoSocial ||
       contratacao.orgaoEntidade?.nome ||
@@ -465,18 +495,16 @@ async function pncp(
 
 
   for (const contratacao of todosResultados) {
+     console.log(contratacao)
+    // const editais = contratacao //filtrarEditais([contratacao]);
 
-    const analise = analisarContratacao(
-      contratacao
-    );
-
-    if (!analise.relevante) {
-      continue;
-    }
+    // if (!editais || editais.length === 0) {
+    //   continue;
+    // }
 
     editaisEncontrados.push({
       contratacao,
-      analise,
+      analise: analisarContratacao(contratacao),
     });
   }
 
@@ -484,12 +512,12 @@ async function pncp(
   // ==========================================================
   // ORDENAR POR RELEVÂNCIA
   // ==========================================================
-
-  editaisEncontrados.sort(
-    (a, b) =>
-      b.analise.score -
-      a.analise.score
-  );
+ 
+  // editaisEncontrados.sort(
+  //   (a, b) =>
+  //     b.analise.score -
+  //     a.analise.score
+  // );
 
 
   console.log("\n======================================");
@@ -520,15 +548,18 @@ async function pncp(
     const codigoExterno = String(
       contratacao.numeroControlePNCP ||
         contratacao.processo ||
+        contratacao.numeroCompra ||
         contratacao.codigo ||
         `${portal.codigo}-${editais.length + 1}`
     );
 
     editais.push({
+      unidadeOrgao: contratacao.unidadeOrgao || null,
+      orgaoEntidade: contratacao.orgaoEntidade || null,
       portalId: portal.id,
       codigoExterno,
-      numero: contratacao.processo || contratacao.numero || null,
-      ano: Number(contratacao.ano) || null,
+      numero: contratacao.numeroCompra || contratacao.processo || contratacao.numero || null,
+      ano: Number(contratacao.anoCompra || contratacao.ano) || null,
       objeto: contratacao.objetoCompra || contratacao.objeto || "Não informado",
       descricao:
         contratacao.informacaoComplementar ||
@@ -537,14 +568,19 @@ async function pncp(
       status: contratacao.situacao || contratacao.status || null,
       valorEstimado: extrairNumeroValor(
         contratacao.valorEstimado ||
+          contratacao.valorTotalEstimado ||
           contratacao.valorGlobal ||
           contratacao.valorTotal ||
           contratacao.valor ||
           contratacao.valorEstimadoCompra
       ),
-      valorHomologado: null,
+      valorHomologado: extrairNumeroValor(
+        contratacao.valorTotalHomologado || contratacao.valorHomologado
+      ),
       dataPublicacao: extrairData(contratacao.dataPublicacaoPncp),
-      dataAbertura: extrairData(contratacao.dataAbertura),
+      dataAbertura: extrairData(
+        contratacao.dataAberturaProposta || contratacao.dataAbertura
+      ),
       dataEncerramento: extrairData(
         contratacao.dataEncerramentoProposta ||
           contratacao.dataEncerramento
@@ -553,9 +589,14 @@ async function pncp(
         contratacao.dataAtualizacaoPortal ||
           contratacao.dataAtualizacao
       ),
-      url: contratacao.linkProcessoEletronico || contratacao.url || null,
+      url:
+        contratacao.linkProcessoEletronico ||
+        contratacao.linkSistemaOrigem ||
+        contratacao.url ||
+        null,
       urlEdital:
         contratacao.linkProcessoEletronico ||
+        contratacao.linkSistemaOrigem ||
         contratacao.urlEdital ||
         contratacao.url ||
         null,

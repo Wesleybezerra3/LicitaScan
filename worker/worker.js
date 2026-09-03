@@ -5,7 +5,7 @@ const coletarPNCP = async () => {
 
     // Aqui entra sua função que consulta a API
     // const editais = await buscarPNCP();
-    pncp();
+   await pncp();
 
     console.log("Coleta finalizada.");
 };
@@ -26,7 +26,7 @@ const iniciarWorker = async () => {
 
         // 10 minuto
         await new Promise(resolve =>
-            setTimeout(resolve, 10 * 60 * 1000)
+            setTimeout(resolve, 30 * 60 * 1000)
         );
     }
 };

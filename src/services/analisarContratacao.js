@@ -1,4 +1,3 @@
-
 const palavrasChave = require("../config/palavras_chaves");
 
 function normalizarTexto(texto = "") {
@@ -10,12 +9,11 @@ function normalizarTexto(texto = "") {
     .trim();
 }
 
-const analisarContratacao= (contratacao)=> {
-
-  const objeto = contratacao.objetoCompra || "";
+const analisarContratacao = (contratacao) => {
+  const objeto = contratacao.objetoCompra || contratacao.objeto || "";
 
   const informacaoComplementar =
-    contratacao.informacaoComplementar || "";
+    contratacao.informacaoComplementar || contratacao.descricao || "";
 
   const texto = normalizarTexto(`
     ${objeto}
@@ -27,11 +25,9 @@ const analisarContratacao= (contratacao)=> {
   const palavrasEncontradas = [];
 
   for (const [palavra, peso] of Object.entries(palavrasChave)) {
-
     const palavraNormalizada = normalizarTexto(palavra);
 
     if (texto.includes(palavraNormalizada)) {
-
       score += peso;
 
       palavrasEncontradas.push({
@@ -46,5 +42,5 @@ const analisarContratacao= (contratacao)=> {
     score,
     palavrasEncontradas,
   };
-}
+};
 module.exports = analisarContratacao;

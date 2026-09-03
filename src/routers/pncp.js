@@ -1,8 +1,8 @@
 const express = require("express");
-const { getEditais } = require("../controllers/pncp");
+const { getAllEditais } = require("../controllers/pncp");
 
 const router = express.Router();
 
-router.get("/editais", getEditais);
+router.get("/editais", getAllEditais);
 
 module.exports = router;
