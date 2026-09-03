@@ -24,6 +24,8 @@ Futuramente, o projeto poderá evoluir para uma central de licitações, com rec
 - **Playwright** — automação e navegação nos portais;
 - **JSON** — armazenamento inicial dos dados coletados;
 - **File System (Node.js)** — gerenciamento dos arquivos e diretórios.
+- **Prisma.js - ORM gerenciamento de banco de dados.
+- **SQlite - Banco de dados.
 
 ## 📌 Status
 
