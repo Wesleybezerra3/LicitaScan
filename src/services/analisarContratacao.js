@@ -21,25 +21,34 @@ const analisarContratacao = (contratacao) => {
   `);
 
   let score = 0;
+  let totalPeso = 0;
 
   const palavrasEncontradas = [];
 
-  for (const [palavra, peso] of Object.entries(palavrasChave)) {
-    const palavraNormalizada = normalizarTexto(palavra);
+  for (const { termo, peso } of palavrasChave) {
+    totalPeso += peso;
 
-    if (texto.includes(palavraNormalizada)) {
+    if (texto.includes(termo)) {
       score += peso;
 
       palavrasEncontradas.push({
-        palavra,
+        palavra: termo,
         peso,
       });
     }
   }
 
+ const porcentagemRelevancia =
+  totalPeso > 0
+    ? Math.min(
+        100,
+        Number(((score / totalPeso) * 1000).toFixed(2))
+      )
+    : 0;
   return {
     relevante: score >= 8,
     score,
+    porcentagemRelevancia,
     palavrasEncontradas,
   };
 };

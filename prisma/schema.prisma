@@ -16,7 +16,7 @@ model Usuario {
   criadoEm  DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
-  palavrasChave PalavraChave[]
+
   anotacoes    Anotacao[]
   licitacoes   LicitacaoUsuario[]
   buscas       ExecucaoBusca[]
@@ -143,15 +143,23 @@ model Item {
 
 model PalavraChave {
   id        Int      @id @default(autoincrement())
-  usuarioId Int
+  perfilBuscaId Int
   nome      String
   ativa     Boolean  @default(true)
   criadaEm  DateTime @default(now())
 
-  usuario    Usuario                  @relation(fields: [usuarioId], references: [id])
+  perfilBusca    PerfilBusca                  @relation(fields: [perfilBuscaId], references: [id])
   licitacoes LicitacaoPalavraChave[]
 
-  @@unique([usuarioId, nome])
+  @@unique([perfilBuscaId, nome])
+}
+
+model PerfilBusca {
+    id Int @id @default(autoincrement())
+    nome String
+
+    palavrasChave PalavraChave[]
+
 }
 
 model LicitacaoPalavraChave {
@@ -166,7 +174,7 @@ model LicitacaoPalavraChave {
 
   licitacao    Licitacao    @relation(fields: [licitacaoId], references: [id])
   palavraChave PalavraChave @relation(fields: [palavraChaveId], references: [id])
-  item         Item?       @relation(fields: [itemId], references: [id])
+  item         Item?        @relation(fields: [itemId], references: [id])
 
   @@unique([licitacaoId, palavraChaveId, itemId])
 }

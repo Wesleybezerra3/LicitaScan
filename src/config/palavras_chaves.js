@@ -1,50 +1,169 @@
-const palavrasChave = {
-  // Alta relevância
-  "livro": 10,
-  "livros": 10,
-  "livro didático": 15,
-  "livros didáticos": 15,
-  "material didático": 12,
-  "materiais didáticos": 12,
-
-
-  "livro paradidático": 15,
-  "livros paradidáticos": 15,
-  "paradidático": 12,
-  "paradidáticos": 12,
-
-  "material escolar": 10,
-  "materiais escolares": 10,
-
-  "kit escolar": 10,
-  "kits escolares": 10,
-  "kit aluno": 8,
-  "kits aluno": 8,
-  "kit professor": 8,
-  "kits professor": 8,
-
-  "material pedagógico": 10,
-  "materiais pedagógicos": 10,
-
-  "literatura": 10,
-  "literário": 10,
- "literários": 10,
-  "obra literária": 12,
-  "obras literárias": 12,
-
-  "material informacional": 8,
-  "recurso informacional": 8,
-
-  "publicação nacional": 8,
-  "publicações nacionais": 8,
-
-  "referenciais teóricos": 8,
-
-  "saeb": 8,
-
-  // Menor relevância
-  "biblioteca": 3,
-  "acervo": 2,
-};
+const palavrasChave = [
+  {
+    termo: "livro",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "livros",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "livro didático",
+    relevancia: "alta",
+    peso: 15,
+  },
+  {
+    termo: "livros didáticos",
+    relevancia: "alta",
+    peso: 15,
+  },
+  {
+    termo: "material didático",
+    relevancia: "alta",
+    peso: 12,
+  },
+  {
+    termo: "materiais didáticos",
+    relevancia: "alta",
+    peso: 12,
+  },
+  {
+    termo: "livro paradidático",
+    relevancia: "alta",
+    peso: 15,
+  },
+  {
+    termo: "livros paradidáticos",
+    relevancia: "alta",
+    peso: 15,
+  },
+  {
+    termo: "paradidático",
+    relevancia: "alta",
+    peso: 12,
+  },
+  {
+    termo: "paradidáticos",
+    relevancia: "alta",
+    peso: 12,
+  },
+  {
+    termo: "material escolar",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "materiais escolares",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "kit escolar",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "kits escolares",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "kit aluno",
+    relevancia: "media",
+    peso: 8,
+  },
+  {
+    termo: "kits aluno",
+    relevancia: "media",
+    peso: 8,
+  },
+  {
+    termo: "kit professor",
+    relevancia: "media",
+    peso: 8,
+  },
+  {
+    termo: "kits professor",
+    relevancia: "media",
+    peso: 8,
+  },
+  {
+    termo: "material pedagógico",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "materiais pedagógicos",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "literatura",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "literário",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "literários",
+    relevancia: "alta",
+    peso: 10,
+  },
+  {
+    termo: "obra literária",
+    relevancia: "alta",
+    peso: 12,
+  },
+  {
+    termo: "obras literárias",
+    relevancia: "alta",
+    peso: 12,
+  },
+  {
+    termo: "material informacional",
+    relevancia: "media",
+    peso: 8,
+  },
+  {
+    termo: "recurso informacional",
+    relevancia: "media",
+    peso: 8,
+  },
+  {
+    termo: "publicação nacional",
+    relevancia: "media",
+    peso: 8,
+  },
+  {
+    termo: "publicações nacionais",
+    relevancia: "media",
+    peso: 8,
+  },
+  {
+    termo: "referenciais teóricos",
+    relevancia: "media",
+    peso: 8,
+  },
+  {
+    termo: "saeb",
+    relevancia: "media",
+    peso: 8,
+  },
+  {
+    termo: "biblioteca",
+    relevancia: "baixa",
+    peso: 3,
+  },
+  {
+    termo: "acervo",
+    relevancia: "baixa",
+    peso: 2,
+  },
+];
 
 module.exports = palavrasChave;

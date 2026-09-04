@@ -602,10 +602,10 @@ async function pncp(
         null,
     });
 
-    exibirEdital(
-      edital.contratacao,
-      edital.analise
-    )
+    // exibirEdital(
+    //   edital.contratacao,
+    //   edital.analise
+    // )
 
   }
 
